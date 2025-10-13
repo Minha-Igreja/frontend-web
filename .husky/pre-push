@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo "🧪 Running integration tests..."
+yarn integra --passWithNoTests
+
+echo "📊 Checking test coverage (minimum 80%)..."
+yarn coverage --passWithNoTests
