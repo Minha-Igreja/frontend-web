@@ -1,0 +1,92 @@
+# Configuração otimizada para desenvolvedores Fullstack com foco em NodeJS, React, TypeScript e Prisma.
+# 1. Configurações de Alto Nível/Global
+# Define a linguagem principal para a saída da revisão
+language: "pt-BR"
+
+# INSTRUÇÕES DE TOM (Persona)
+# Esta propriedade DEVE estar na raiz do arquivo.
+tone_instructions: Você é um Engenheiro de Software Sênior em Fullstack (TS, Node, React). Foco em segurança, performance, clean architecture e código assíncrono. Seja direto, conciso, profissional e educativo.
+
+---
+reviews:
+  # Define o perfil de revisão como 'strict' (rigoroso).
+  # Isso garante que a IA seja detalhista e exija conformidade com as melhores práticas.
+  profile: assertive
+
+  # Configurações de automação
+  auto_review:
+    # Habilita a revisão automática em todas as PRs
+    enabled: true
+    # Permite revisões incrementais em cada push
+    auto_incremental_review: true
+    # Não revisa PRs em estado de rascunho (draft)
+    drafts: false
+
+  # Habilita a geração de um resumo de alto nível para a PR
+  high_level_summary: true
+
+  # Força o commit status (pendente/sucesso) para maior visibilidade no CI
+  commit_status: true
+
+  # Ferramentas de análise específicas
+  tools:
+    # ESLint para JavaScript/TypeScript (React, Node, Next, Nest)
+    # Assume que você já tem a configuração .eslintrc no projeto.
+    eslint:
+      enabled: true
+
+    # Gitleaks para detectar segredos/chaves vazadas nos commits (segurança essencial)
+    gitleaks:
+      enabled: true
+
+    # Hadolint para revisar Dockerfiles (essencial para deployment em ambientes modernos)
+    hadolint:
+      enabled: true
+
+    # Adicione outras ferramentas conforme necessário (ex: stylelint, security scan, etc.)
+
+  # Instruções específicas por caminho (Path Instructions)
+  # Isso é crucial para monolitos ou projetos fullstack onde Frontend e Backend coexistem.
+  path_instructions:
+    # Regras para código Backend (Node/NestJS APIs, Interação com DB)
+    # - path: "src/api/**"
+    #   instructions: |
+    #     Foque na segurança dos endpoints, performance das queries do Prisma/Mongoose,
+    #     validação de input (DTOs) e tratamento de erros. Garanta que a camada de serviço/negócio
+    #     esteja desacoplada da camada de controle/roteamento.
+
+    # Regras para código Frontend (React/NextJS)
+    - path: "src/components/**"
+      instructions: |
+        Revise a acessibilidade (a11y), a performance de renderização (evite re-renders desnecessários),
+        e a correta separação de concerns entre componentes e hooks. Garanta que não haja lógica complexa diretamente nos componentes.
+
+    # Regras para Testes (Jest/Cypress/Supertest)
+    - path: "**/*.test.{ts,tsx,js,jsx}"
+      instructions: |
+        Verifique se os testes são atômicos (não dependem de outros testes), cobrem os casos de borda (edge cases)
+        e se estão utilizando mocks e spies de forma correta e eficiente (Jest).
+    - path: "**/*.spec.{ts,tsx,js,jsx}"
+      instructions: |
+        Verifique se os testes são atômicos (não dependem de outros testes), cobrem os casos de borda (edge cases)
+        e se estão utilizando mocks e spies de forma correta e eficiente (Jest).
+
+# Configurações adicionais
+finishing_touches:
+  # Geração automática de testes unitários para funções que não têm cobertura
+  unit_tests:
+    enabled: true
+    # Sugere testes para arquivos não cobertos
+    coverage_threshold: 1
+
+  # Geração automática de documentação (docstrings)
+  docstrings:
+    enabled: true
+    # Foca a geração de docs em classes e métodos públicos
+    target: [class, public_method]
+
+# Integração com sistemas de tickets (ex: Jira, Linear)
+# Isso ajuda o CodeRabbit a verificar se a PR está em linha com o ticket referenciado.
+integrations:
+  issue_trackers:
+    enabled: true
