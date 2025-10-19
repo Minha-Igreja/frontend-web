@@ -14,6 +14,7 @@
     "unit": "jest --testPathPatterns=\\.spec\\.",
     "integra": "jest --testPathPatterns=\\.test\\.",
     "coverage": "jest --coverage",
+    "e2e": "playwright test",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@jest/globals": "^30.1.2",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
