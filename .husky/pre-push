@@ -1,7 +1,28 @@
-#!/bin/sh
-
 echo "🧪 Running integration tests..."
 yarn integra --passWithNoTests
 
+# Verifica se os testes de integração passaram
+if [ $? -ne 0 ]; then
+  echo "❌ Integration tests failed. Push aborted."
+  exit 1
+fi
+
+echo "✅ Integration tests passed!"
+
+echo ""
 echo "📊 Checking test coverage (minimum 80%)..."
+
+# Roda coverage - Jest já vai falhar se não atingir o threshold de 80% no jest.config.js
 yarn coverage --passWithNoTests
+
+# Verifica se a cobertura atingiu o mínimo
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Coverage below 80% threshold. Push aborted."
+  echo "💡 Run 'yarn coverage' to see detailed coverage report."
+  exit 1
+fi
+
+echo ""
+echo "✅ Coverage threshold met (≥80%)!"
+echo "🚀 All checks passed. Pushing to remote..."
