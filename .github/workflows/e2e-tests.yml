@@ -41,12 +41,15 @@ jobs:
       - name: Check if Linux snapshots exist
         id: check_snapshots
         run: |
-          if ls e2e/**/*-snapshots/*-linux.png 1> /dev/null 2>&1; then
+          # Conta quantos snapshots Linux existem para este navegador
+          SNAPSHOT_COUNT=$(find e2e -name "*-${{ matrix.browser }}-linux.png" 2>/dev/null | wc -l)
+
+          if [ "$SNAPSHOT_COUNT" -gt 0 ]; then
             echo "snapshots_exist=true" >> $GITHUB_OUTPUT
-            echo "✅ Linux snapshots found"
+            echo "✅ Found $SNAPSHOT_COUNT Linux snapshots for ${{ matrix.browser }}"
           else
             echo "snapshots_exist=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Linux snapshots NOT found - will generate them"
+            echo "⚠️ No Linux snapshots found for ${{ matrix.browser }} - will generate them"
           fi
 
       - name: Generate snapshots if missing (first run)
@@ -60,9 +63,18 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add e2e/**/*-snapshots/*-linux.png
-          git commit -m "chore: add Linux snapshots for ${{ matrix.browser }} [skip ci]" || echo "No changes to commit"
-          git push
+
+          # Adiciona snapshots gerados (se houver)
+          git add e2e/**/*-snapshots/*-linux.png 2>/dev/null || true
+
+          # Verifica se há mudanças para commitar
+          if git diff --staged --quiet; then
+            echo "ℹ️ No new snapshots to commit (already exist in repository)"
+          else
+            git commit -m "chore: add Linux snapshots for ${{ matrix.browser }} [skip ci]"
+            git push
+            echo "✅ Snapshots committed successfully"
+          fi
 
       - name: Run E2E tests
         id: e2e_tests
