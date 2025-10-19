@@ -1,0 +1,111 @@
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: write  # Permite commits automáticos de snapshots
+
+jobs:
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15  # Aumentado para incluir geração de snapshots
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Check if Linux snapshots exist
+        id: check_snapshots
+        run: |
+          # Conta quantos snapshots Linux existem para este navegador
+          SNAPSHOT_COUNT=$(find e2e -name "*-${{ matrix.browser }}-linux.png" 2>/dev/null | wc -l)
+
+          if [ "$SNAPSHOT_COUNT" -gt 0 ]; then
+            echo "snapshots_exist=true" >> $GITHUB_OUTPUT
+            echo "✅ Found $SNAPSHOT_COUNT Linux snapshots for ${{ matrix.browser }}"
+          else
+            echo "snapshots_exist=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No Linux snapshots found for ${{ matrix.browser }} - will generate them"
+          fi
+
+      - name: Generate snapshots if missing (first run)
+        if: steps.check_snapshots.outputs.snapshots_exist == 'false'
+        run: |
+          echo "🔄 Generating Linux snapshots for ${{ matrix.browser }}..."
+          yarn e2e --project=${{ matrix.browser }} --update-snapshots
+
+      - name: Commit generated snapshots
+        if: steps.check_snapshots.outputs.snapshots_exist == 'false'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Adiciona snapshots gerados (se houver)
+          git add e2e/**/*-snapshots/*-linux.png 2>/dev/null || true
+
+          # Verifica se há mudanças para commitar
+          if git diff --staged --quiet; then
+            echo "ℹ️ No new snapshots to commit (already exist in repository)"
+          else
+            git commit -m "chore: add Linux snapshots for ${{ matrix.browser }} [skip ci]"
+            git push
+            echo "✅ Snapshots committed successfully"
+          fi
+
+      - name: Run E2E tests
+        id: e2e_tests
+        run: yarn e2e --project=${{ matrix.browser }}
+        env:
+          # Define CI para que o Playwright saiba que está rodando no CI
+          CI: true
+        continue-on-error: false
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: test-results/**/*.png
+          retention-days: 7
+
+      - name: Upload videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-${{ matrix.browser }}
+          path: test-results/**/*.webm
+          retention-days: 7

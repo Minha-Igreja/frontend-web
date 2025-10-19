@@ -13,6 +13,14 @@
 # testing
 /coverage
 
+# playwright
+/playwright-report/
+/test-results/
+/playwright/.cache/
+
+# playwright screenshots (manter apenas os aprovados)
+!/e2e/**/*-snapshots/
+
 # next.js
 /.next/
 /out/
