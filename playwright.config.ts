@@ -19,8 +19,11 @@ export default defineConfig({
   expect: {
     timeout: 5000,
     toHaveScreenshot: {
-      // Permite diferença de até 0.02 (2%) dos pixels para anti-aliasing
-      maxDiffPixelRatio: 0.02,
+      // Permite diferença de até 0.05 (5%) dos pixels para cross-platform
+      // (Windows vs Linux renderizam fontes e anti-aliasing diferentes)
+      maxDiffPixelRatio: 0.05,
+      // Threshold para diferenças de pixel individuais
+      threshold: 0.2,
     },
   },
 

@@ -1,0 +1,93 @@
+name: Update E2E Snapshots
+
+# Workflow manual para atualizar os snapshots do Playwright
+# Use quando precisar regenerar os screenshots de referência no Linux
+on:
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to update snapshots for'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chromium
+          - firefox
+          - webkit
+
+jobs:
+  update-snapshots:
+    name: Update Snapshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: |
+          if [ "${{ inputs.browser }}" = "all" ]; then
+            npx playwright install --with-deps
+          else
+            npx playwright install --with-deps ${{ inputs.browser }}
+          fi
+
+      - name: Update snapshots
+        run: |
+          if [ "${{ inputs.browser }}" = "all" ]; then
+            yarn e2e --update-snapshots
+          else
+            yarn e2e --project=${{ inputs.browser }} --update-snapshots
+          fi
+
+      - name: Upload updated snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-snapshots-${{ inputs.browser }}
+          path: e2e/**/*-snapshots/
+          retention-days: 30
+
+      - name: Create Pull Request with updated snapshots
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'chore: update E2E snapshots for ${{ inputs.browser }} (Linux)'
+          branch: update-snapshots-${{ inputs.browser }}-${{ github.run_number }}
+          title: '[E2E] Update Snapshots - ${{ inputs.browser }}'
+          body: |
+            ## 📸 E2E Snapshots Updated (Linux)
+
+            Este PR atualiza os snapshots de visual regression do Playwright para **${{ inputs.browser }}**.
+
+            ### O que mudou
+            - ✅ Screenshots gerados no Ubuntu (Linux)
+            - 🌐 Browser: `${{ inputs.browser }}`
+            - 🔄 Run ID: ${{ github.run_number }}
+
+            ### Como verificar
+            1. Revise os screenshots alterados na aba **Files Changed**
+            2. Baixe os artifacts (link acima) para comparar localmente se necessário
+            3. Faça merge se as mudanças estiverem corretas
+
+            ### Próximos passos
+            Após o merge deste PR, o CI passará a usar estes snapshots Linux e os testes E2E não falharão mais.
+
+            ---
+            🤖 Gerado automaticamente por: `update-snapshots.yml`
+            👤 Executado por: @${{ github.actor }}
+          labels: |
+            automated
+            e2e
+            snapshots
+          add-paths: |
+            e2e/**/*-snapshots/*.png
