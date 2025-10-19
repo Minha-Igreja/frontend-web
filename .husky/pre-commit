@@ -1,2 +1,15 @@
-yarn lint-staged
+echo "🧪 Running unit tests..."
+
+# Roda testes unitários (*.spec.*)
 yarn unit --passWithNoTests
+
+# Verifica se os testes passaram
+if [ $? -ne 0 ]; then
+  echo "❌ Unit tests failed. Commit aborted."
+  exit 1
+fi
+
+echo "✅ All unit tests passed!"
+
+# Roda lint-staged (ESLint + Prettier nos arquivos staged)
+npx lint-staged
