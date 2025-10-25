@@ -18,8 +18,9 @@
 /test-results/
 /playwright/.cache/
 
-# playwright screenshots (manter apenas os aprovados)
-!/e2e/**/*-snapshots/
+# playwright screenshots (versionar apenas arquivos linux gerados no CI)
+e2e/**/*-snapshots/*.png
+!e2e/**/*-snapshots/*-linux.png
 
 # next.js
 /.next/

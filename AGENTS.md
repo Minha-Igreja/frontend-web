@@ -47,6 +47,9 @@ Pastas compartilhadas:
   1) Apresentar um plano de ação objetivo (o que será feito e por quê).
   2) Desenvolver os testes correspondentes (sem implementar a feature), prontos para rodar.
 
+### Regras adicionais para Testes E2E (Playwright)
+- Toda suíte E2E deve validar tanto **comportamentos** (fluxos, interações, persistência) quanto **consistência visual** (snapshots relevantes).
+- Use `toHaveScreenshot` para os elementos/páginas críticos sempre que alterações visuais forem significativas (ex.: mudança de tema, posicionamento de componentes globais, fundos dedicados).
+
 ## Observações
 - As regras acima prevalecem sobre convenções genéricas. Em caso de conflito, seguir este arquivo.
-
