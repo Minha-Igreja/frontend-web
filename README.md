@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Minha Igreja — Frontend Web
 
-## Getting Started
+Aplicação web construída com Next.js 15 (App Router), React 19 e TypeScript. O projeto oferece uma base de UI com tema claro/escuro, arquitetura em camadas, testes (unitários, integração e E2E) e pipelines de qualidade automatizados.
 
-First, run the development server:
+## Sumário
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- O que é
+- Requisitos
+- Como rodar
+- Scripts
+- Testes
+- Estrutura
+- CI/CD
+- Contribuição
+
+## O que é
+
+- Frontend web para “Minha Igreja”, com foco inicial em tema e fundação de design.
+- Arquitetura em camadas: `app` (rotas/layout), `view` (componentes), `view-model` (hooks/providers).
+- Estilos com Tailwind v4 e tokens CSS; `next-themes` para persistência de tema.
+
+## Requisitos
+
+- Node 20
+- Yarn
+
+## Como rodar
+
+Instalação
+```
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Desenvolvimento
+```
+yarn dev
+```
+Abra `http://localhost:3000` no navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Build/Produção
+```
+yarn build
+yarn start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+- Lint/Format: `yarn lint`, `yarn lint:fix`, `yarn format`, `yarn format:check`
+- Testes unitários: `yarn unit`
+- Testes de integração: `yarn integra`
+- Cobertura: `yarn coverage` (mínimo global 80%)
+- E2E (Playwright): `yarn e2e`, `yarn e2e:update`, `yarn e2e:ui`, `yarn e2e:report`
 
-To learn more about Next.js, take a look at the following resources:
+## Testes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Jest + Testing Library para unit/integration (JS DOM). Setup em `jest.setup.js`.
+- Playwright para E2E com `webServer` (`yarn dev`) e snapshots visuais.
+- Dica: snapshots podem variar por SO; o CI gera e mantém os snapshots Linux.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estrutura
 
-## Deploy on Vercel
+- `src/app/` — layout, páginas, estilos globais (App Router)
+- `src/view/` — componentes e libs utilitárias (Tailwind + CVA)
+- `src/view-model/` — hooks/providers (p.ex. tema)
+- `e2e/` — testes Playwright e snapshots
+- Configs: `jest.config.js`, `playwright.config.ts`, `eslint.config.mjs`, `postcss.config.mjs`, `tsconfig.json`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## CI/CD
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- E2E (push/PR para `develop`): `.github/workflows/e2e-tests.yml` — instala deps/browsers, gera snapshots Linux se faltarem, executa matriz de browsers e publica artifacts em falhas.
+- Atualização manual de snapshots: `.github/workflows/update-snapshots.yml` — workflow dispatch abre PR com imagens atualizadas.
+- Hooks Git (Husky):
+  - `pre-commit`: unit tests + lint-staged
+  - `pre-push`: integração + cobertura ≥ 80%
+
+## Contribuição
+
+Consulte o guia completo em `docs/CONTRIBUTING.md`.
+
+## Stack
+
+- Next.js 15, React 19, TypeScript 5
+- Tailwind CSS v4, next-themes, CVA, Radix Slot, lucide-react
+- Jest/RTL, Playwright
+- ESLint (flat), Prettier, Husky + lint-staged
