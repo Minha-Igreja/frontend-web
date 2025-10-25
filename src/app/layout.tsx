@@ -2,8 +2,6 @@ import { Poppins } from 'next/font/google';
 
 import type { Metadata } from 'next';
 
-import { Header } from '@/view/components/organisms/Header';
-
 import './globals.css';
 import { Providers } from './providers';
 
@@ -28,10 +26,7 @@ export default function RootLayout({
   return (
     <html lang="pt-br" suppressHydrationWarning>
       <body className={`${poppins.variable} font-sans antialiased`}>
-        <Providers>
-          <Header />
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
