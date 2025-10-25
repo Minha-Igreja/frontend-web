@@ -5,17 +5,29 @@ Este documento orienta como instalar, desenvolver, testar e contribuir com quali
 - Stack: Next.js 15 (App Router), React 19, TypeScript, Tailwind v4, next-themes, Jest/RTL, Playwright.
 - Node/Yarn: Node 20 e Yarn; lockfile `yarn.lock` para builds reprodutíveis.
 
-## 1. Visão Geral da Arquitetura
+## 1. Arquitetura (Clean Architecture + MVVM)
 
+Camadas e responsabilidades
 - App (Next.js): páginas, layout raiz e providers globais (`src/app/`).
-- View (UI): componentes visuais e utilitários (`src/view/**`).
-- View-model: hooks/providers que orquestram estado e integrações consumidas pela view (`src/view-model/**`).
-- Regras de importação (enforçadas por ESLint):
-  - `app` não pode importar `controller`/`model`.
-  - `view` não pode importar `controller`/`model`; consuma `view-model`.
-  - `view-model` não pode importar `model`; use `controller` quando existir.
-  - `controller` não importa `app`/`view`/`view-model` (camada de orquestração futura).
-- Aliases: `@/*` aponta para `src/*` (ver `tsconfig.json`).
+- View (UI): componentes visuais e utilitários (`src/view/**`). View “burra”: apenas renderiza e interage.
+- View-Model: hooks/providers; expõe actions e stores (estado global), modela dados para a View, recebe interações e repassa ao Controller; não contém regra de negócio.
+- Controller: concentra regras de negócio, é chamado pelo View-Model; obtém dados via Model.
+- Model: chamadas HTTP, estado HTTP e cache; usa `fetch` nativo do Next.js para otimização de cache.
+
+Pastas compartilhadas
+- `shared/`: funções, classes, tipos e DTOs que cruzam camadas.
+- `config/`: arquivos de configuração de dependências externas.
+
+Regras de importação (ESLint)
+- `app` não pode importar `controller`/`model`.
+- `view` não pode importar `controller`/`model`; consuma `view-model`, `shared`, `config`.
+- `view-model` não importa `model` para regra de negócio; chama `controller`.
+- `controller` não importa `app`/`view`/`view-model`.
+- `model` não importa camadas superiores.
+
+Atomic Design
+- Pages: `src/app/**` (páginas do App Router).
+- Em `src/view/components/**`: templates, organisms, molecules, atoms.
 
 Tema (Light/Dark)
 - Provider: `src/view-model/providers/ThemeProvider.tsx` usa `next-themes` com `attribute="class"`.
@@ -51,9 +63,14 @@ yarn start
 - TypeScript estrito; caminhos `@/*` (configure seu editor para ler `tsconfig.json`).
 - Estilo: Prettier; execute `yarn format`/`yarn format:check`.
 - ESLint (flat config): regras de camadas e `import/order` — mantenha imports em ordem e respeite zones.
-- UI com Tailwind v4; use tokens (`bg-background`, `text-foreground`, etc.) para compatibilidade com temas.
+- UI com Tailwind v4 e shadcn/ui; use tokens (`bg-background`, `text-foreground`, etc.) para compatibilidade com temas.
 - Variantes de componentes com CVA (ex.: `button.tsx`) quando precisar de variações.
 - Acessibilidade: use roles/labels, foco visível e semântica (`<header/>`, `<main/>`, etc.).
+
+Next.js — Server Components e Cache
+- Priorize Server Components quando possível.
+- Centralize Client Components (somente onde necessário) para otimizar renderização.
+- Utilize cache (`fetch`/RSC) quando fizer sentido para componentes e dados.
 
 ## 4. Estrutura de Pastas (resumo prático)
 
@@ -74,7 +91,7 @@ yarn start
   - Cobertura: `yarn coverage` (threshold global 80%)
   - E2E: `yarn e2e`, `yarn e2e:update`, `yarn e2e:ui`, `yarn e2e:report`
 
-## 6. Fluxo de Trabalho (Git, Hooks, CI)
+## 6. Fluxo de Trabalho (Git, Hooks, CI, TDD)
 
 Husky
 - Pre-commit: roda `yarn unit --passWithNoTests` e `lint-staged` (ESLint + Prettier nos arquivos staged).
@@ -87,6 +104,11 @@ CI (GitHub Actions)
   - Executa a suíte E2E em `chromium`, `firefox` e `webkit`. Publica artifacts (relatório, screenshots, vídeos) em caso de falha.
 - `.github/workflows/update-snapshots.yml` (manual):
   - Atualiza snapshots no Linux para um browser específico ou todos e abre PR com as imagens.
+
+TDD com Pair Programming
+- Solicitações de feature/refactor seguem TDD: a IA escreve os testes (unitários/componentes e/ou integração) primeiro; o humano implementa.
+- A IA não implementa a feature; sugere boas práticas e otimizações.
+- Toda solicitação deve iniciar com um plano de ação objetivo (o que será feito e por quê) e, em seguida, os testes.
 
 Branches e PRs (sugestão)
 - Nomeie branches de feature como `feat/<escopo>`; correções como `fix/<escopo>`; chores como `chore/<escopo>`.

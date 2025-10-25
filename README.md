@@ -12,6 +12,7 @@ Aplicação web construída com Next.js 15 (App Router), React 19 e TypeScript. 
 - Estrutura
 - CI/CD
 - Contribuição
+ - Arquitetura e Regras
 
 ## O que é
 
@@ -83,3 +84,11 @@ Consulte o guia completo em `docs/CONTRIBUTING.md`.
 - Tailwind CSS v4, next-themes, CVA, Radix Slot, lucide-react
 - Jest/RTL, Playwright
 - ESLint (flat), Prettier, Husky + lint-staged
+
+## Arquitetura e Regras
+
+- Clean Architecture + MVVM com camadas: View → View-Model → Controller → Model.
+- View segue Atomic Design (pages no App Router; templates/organisms/molecules/atoms em `src/view/components`).
+- Pastas compartilhadas: `shared/` (tipos/utilitários/DTOs) e `config/` (configurações externas).
+- Priorizar Server Components, centralizar Client Components, e usar cache (`fetch`/RSC) quando aplicável.
+- Regras detalhadas para o agente e para o time em `AGENTS.md`.
